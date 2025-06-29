@@ -6,7 +6,7 @@ WORKDIR /app
 # Копируем только файл с зависимостями для кеширования
 COPY requirements.txt .
 
-# Устанавливаем зависимости. Они попадут в системный site-packages этого образа.
+# Устанавливаем зависимости. Они попадут в системный site-packages и bin этого образа.
 RUN pip install --no-cache-dir -r requirements.txt
 
 
@@ -18,8 +18,10 @@ RUN useradd --create-home appuser
 WORKDIR /home/appuser/app
 
 # Копируем ТОЛЬКО установленные пакеты из системного site-packages стадии 'builder'.
-# Это ключевой шаг многостадийной сборки.
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+
+# --- ИСПРАВЛЕНИЕ: Копируем исполняемые файлы, включая gunicorn ---
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Копируем код приложения и наш новый скрипт-точку входа
 COPY app.py entrypoint.sh ./
